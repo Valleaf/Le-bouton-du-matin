@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>My Web App</title>
 	<style>
@@ -9,80 +10,94 @@
 			cursor: pointer;
 		}
 	</style>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script>
-		let data = [
-			{ name: 'John Doe', comment: 'Great job!', date: '2022-04-01 09:00:00' },
-			{ name: 'Jane Smith', comment: 'Thanks for your help.', date: '2022-04-02 14:30:00' }
-		];
+		let db = null;
 
-		window.onload = function() {
-			let table = document.getElementById('myTable');
-			let tbody = table.getElementsByTagName('tbody')[0];
-
-			// Populate table with initial data
-			data.forEach(function(rowData) {
-				let row = document.createElement('tr');
-				let nameCell = document.createElement('td');
-				nameCell.textContent = rowData.name;
-				row.appendChild(nameCell);
-				let commentCell = document.createElement('td');
-				commentCell.textContent = rowData.comment;
-				row.appendChild(commentCell);
-				let dateCell = document.createElement('td');
-				dateCell.textContent = rowData.date;
-				row.appendChild(dateCell);
-				let checkmarkCell = document.createElement('td');
-				checkmarkCell.className = 'checkmark';
-				checkmarkCell.innerHTML = '&#10003;';
-				row.appendChild(checkmarkCell);
-				tbody.appendChild(row);
+		// Initialize the database
+		function initDatabase() {
+			db = openDatabase('mydb', '1.0', 'My Web App Database', 2 * 1024 * 1024);
+			db.transaction(function (tx) {
+				tx.executeSql('CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY, name TEXT, comment TEXT, date TEXT)');
 			});
+		}
+
+		// Insert a new row into the database
+		function insertRow(name, comment) {
+			let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+			db.transaction(function (tx) {
+				tx.executeSql('INSERT INTO comments (name, comment, date) VALUES (?, ?, ?)', [name, comment, date], function (tx, results) {
+					console.log('Row inserted with ID:', results.insertId);
+				}, function (tx, error) {
+					console.log('Error inserting row:', error);
+				});
+			});
+		}
+
+		// Load the data from the database and populate the table
+		function loadData() {
+			db.transaction(function (tx) {
+				tx.executeSql('SELECT * FROM comments', [], function (tx, results) {
+					let tbody = $('#myTable tbody');
+					for (let i = 0; i < results.rows.length; i++) {
+						let row = results.rows.item(i);
+						let tr = $('<tr>');
+						tr.append($('<td>').text(row.name));
+						tr.append($('<td>').text(row.comment));
+						tr.append($('<td>').text(row.date));
+						tr.append($('<td>').addClass('checkmark').html('&#10003;'));
+						tbody.append(tr);
+					}
+				}, function (tx, error) {
+					console.log('Error loading data:', error);
+				});
+			});
+		}
+
+		window.onload = function () {
+			initDatabase();
+			loadData();
 
 			// Add event listener to add button
 			let addButton = document.getElementById('addButton');
-			addButton.addEventListener('click', function() {
+			addButton.addEventListener('click', function () {
 				// Get user input
 				let name = prompt('Enter your name:');
 				let comment = prompt('Enter your comment:');
 
-				// Add new data to array
-				let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-				let newData = { name: name, comment: comment, date: date };
-				data.push(newData);
+				// Add new data to database
+				insertRow(name, comment);
 
 				// Update table with new data
-				let newRow = document.createElement('tr');
-				let nameCell = document.createElement('td');
-				nameCell.textContent = newData.name;
-				newRow.appendChild(nameCell);
-				let commentCell = document.createElement('td');
-				commentCell.textContent = newData.comment;
-				newRow.appendChild(commentCell);
-				let dateCell = document.createElement('td');
-				dateCell.textContent = newData.date;
-				newRow.appendChild(dateCell);
-				let checkmarkCell = document.createElement('td');
-				checkmarkCell.className = 'checkmark';
-				checkmarkCell.innerHTML = '&#10003;';
-				newRow.appendChild(checkmarkCell);
-				tbody.appendChild(newRow);
+				let tr = $('<tr>');
+				let tbody = $('#myTable tbody');
+				tr.append($('<td>').text(name));
+				tr.append($('<td>').text(comment));
+				tr.append($('<td>').text(new Date().toISOString().slice(0, 19).replace('T', ' ')));
+				tr.append($('<td>').addClass('checkmark').html('&#10003;'));
+				tbody.append(tr);
 			});
 		}
 	</script>
+
 </head>
+
 <body>
-	<table id="myTable">
+	<h1>My Web App</h1>
+	<table id="myTable" border="1">
 		<thead>
 			<tr>
 				<th>Name</th>
 				<th>Comment</th>
 				<th>Date</th>
-				<th>Checked</th>
+				<th>Completed</th>
 			</tr>
 		</thead>
 		<tbody>
+			<!-- Rows will be dynamically generated here -->
 		</tbody>
 	</table>
-	<button id="addButton">Add Row</button>
+	<button id="addButton">Add row</button>
 </body>
+
 </html>
