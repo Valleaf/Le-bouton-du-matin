@@ -3,19 +3,72 @@
 <head>
 	<title>My Web App</title>
 	<style>
-		table {
-			border-collapse: collapse;
-			width: 100%;
-		}
-		th, td {
-			border: 1px solid black;
-			padding: 8px;
-			text-align: left;
-		}
-		th {
-			background-color: #ccc;
+		.checkmark {
+			font-size: 24px;
+			color: green;
+			cursor: pointer;
 		}
 	</style>
+	<script>
+		let data = [
+			{ name: 'John Doe', comment: 'Great job!', date: '2022-04-01 09:00:00' },
+			{ name: 'Jane Smith', comment: 'Thanks for your help.', date: '2022-04-02 14:30:00' }
+		];
+
+		window.onload = function() {
+			let table = document.getElementById('myTable');
+			let tbody = table.getElementsByTagName('tbody')[0];
+
+			// Populate table with initial data
+			data.forEach(function(rowData) {
+				let row = document.createElement('tr');
+				let nameCell = document.createElement('td');
+				nameCell.textContent = rowData.name;
+				row.appendChild(nameCell);
+				let commentCell = document.createElement('td');
+				commentCell.textContent = rowData.comment;
+				row.appendChild(commentCell);
+				let dateCell = document.createElement('td');
+				dateCell.textContent = rowData.date;
+				row.appendChild(dateCell);
+				let checkmarkCell = document.createElement('td');
+				checkmarkCell.className = 'checkmark';
+				checkmarkCell.innerHTML = '&#10003;';
+				row.appendChild(checkmarkCell);
+				tbody.appendChild(row);
+			});
+
+			// Add event listener to add button
+			let addButton = document.getElementById('addButton');
+			addButton.addEventListener('click', function() {
+				// Get user input
+				let name = prompt('Enter your name:');
+				let comment = prompt('Enter your comment:');
+
+				// Add new data to array
+				let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+				let newData = { name: name, comment: comment, date: date };
+				data.push(newData);
+
+				// Update table with new data
+				let newRow = document.createElement('tr');
+				let nameCell = document.createElement('td');
+				nameCell.textContent = newData.name;
+				newRow.appendChild(nameCell);
+				let commentCell = document.createElement('td');
+				commentCell.textContent = newData.comment;
+				newRow.appendChild(commentCell);
+				let dateCell = document.createElement('td');
+				dateCell.textContent = newData.date;
+				newRow.appendChild(dateCell);
+				let checkmarkCell = document.createElement('td');
+				checkmarkCell.className = 'checkmark';
+				checkmarkCell.innerHTML = '&#10003;';
+				newRow.appendChild(checkmarkCell);
+				tbody.appendChild(newRow);
+			});
+		}
+	</script>
 </head>
 <body>
 	<table id="myTable">
@@ -23,70 +76,13 @@
 			<tr>
 				<th>Name</th>
 				<th>Comment</th>
-				<th>Date/Time</th>
+				<th>Date</th>
+				<th>Checked</th>
 			</tr>
 		</thead>
 		<tbody>
-			<tr>
-				<td>John Doe</td>
-				<td>Great job!</td>
-				<td>2023-03-30 10:15:23</td>
-			</tr>
-			<tr>
-				<td>Jane Smith</td>
-				<td>Thanks for the help!</td>
-				<td>2023-03-30 12:45:17</td>
-			</tr>
 		</tbody>
 	</table>
-
-	<script>
-		let data = [
-			{name: 'John Doe', comment: 'Great job!', date: '2023-03-30 10:15:23'},
-			{name: 'Jane Smith', comment: 'Thanks for the help!', date: '2023-03-30 12:45:17'}
-		];
-
-		let table = document.getElementById('myTable');
-		let tbody = table.getElementsByTagName('tbody')[0];
-
-		// Add event listener to checkmark element
-		table.addEventListener('click', function(event) {
-			let target = event.target;
-
-			if (target.tagName === 'TD' && target.classList.contains('checkmark')) {
-				// Get user input
-				let name = prompt('Enter your name:');
-				let comment = prompt('Enter your comment:');
-
-				// Add new data to array
-				let date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-			
-				data.push({name: name, comment: comment, date: date});
-
-				// Update table with new data
-				let row = tbody.insertRow();
-				let cell1 = row.insertCell();
-				let cell2 = row.insertCell();
-				let cell3 = row.insertCell();
-				cell1.innerHTML = name;
-				cell2.innerHTML = comment;
-				cell3.innerHTML = date;
-			}
-		});
-
-		// Store data in database
-		const sqlite3 = require('sqlite3').verbose();
-		const db = new sqlite3.Database('mydatabase.db');
-
-		db.serialize(function() {
-			db.run("CREATE TABLE IF NOT EXISTS mytable (name TEXT, comment TEXT, date TEXT)");
-
-			data.forEach(function(row) {
-				db.run(`INSERT INTO mytable (name, comment, date) VALUES (?, ?, ?)`, [row.name, row.comment, row.date]);
-			});
-		});
-
-		db.close();
-	</script>
+	<button id="addButton">Add Row</button>
 </body>
 </html>
